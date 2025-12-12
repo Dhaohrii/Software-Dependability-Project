@@ -95,17 +95,20 @@ final class RFC2231Utils {
     private static byte[] fromHex(final String text) {
         final var shift = 4;
         final var out = new ByteArrayOutputStream(text.length());
-        for (var i = 0; i < text.length();) {
-            final var c = text.charAt(i++);
+        var i = 0;
+        while (i < text.length()) {
+            final var c = text.charAt(i);
             if (c == '%') {
-                if (i > text.length() - 2) {
+                if (i > text.length() - 3) {
                     break; // unterminated sequence
                 }
-                final var b1 = HEX_DECODE[text.charAt(i++) & MASK];
-                final var b2 = HEX_DECODE[text.charAt(i++) & MASK];
-                out.write(b1 << shift | b2);
+                final var b1 = HEX_DECODE[text.charAt(i + 1) & MASK];
+                final var b2 = HEX_DECODE[text.charAt(i + 2) & MASK];
+                out.write(((b1 & 0xFF) << shift) | (b2 & 0xFF));
+                i += 3;
             } else {
                 out.write((byte) c);
+                i++;
             }
         }
         return out.toByteArray();
