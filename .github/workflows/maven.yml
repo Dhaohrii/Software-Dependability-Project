@@ -68,4 +68,4 @@ jobs:
           -Dsonar.projectKey=Dhaohrii_Software-Dependability-Project \
           -Dsonar.organization=dhaohri2025 \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=${SONAR_TOKEN}
+          -Dsonar.token=${SONAR_TOKEN}
