@@ -20,6 +20,7 @@ package org.apache.commons.fileupload2.core;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
@@ -34,38 +35,63 @@ import org.junit.jupiter.api.Test;
  */
 class MultipartStreamTest {
 
-    static private final String BOUNDARY_TEXT = "myboundary";
+    private static final String BOUNDARY_TEXT = "myboundary";
 
     /**
      * Tests whether the maxSize works.
      */
-    @Test
-    public void testPartHeaderSizeMaxLimit() throws Exception {
-        final String request = "-----1234\r\n" + "Content-Disposition: form-data; name=\"file1\"; filename=\"foo1.tab\"\r\n" + "Content-Type: text/whatever\r\n"
-                + "Content-Length: 10\r\n" + "\r\n" + "This is the content of the file\n" + "\r\n" + "-----1234\r\n"
-                + "Content-Disposition: form-data; name=\"file2\"; filename=\"foo2.tab\"\r\n" + "Content-Type: text/whatever\r\n" + "\r\n"
-                + "This is the content of the file\n" + "\r\n" + "-----1234--\r\n";
-        final byte[] byteContents = request.getBytes(StandardCharsets.UTF_8);
-        final InputStream input = new ByteArrayInputStream(byteContents);
-        final byte[] boundary = "---1234".getBytes();
-        final MultipartInput mi = MultipartInput.builder().setInputStream(input).setBoundary(boundary).setPartHeaderSizeMax(100).get();
-        assertNotNull(mi);
-        try {
-            boolean nextPart = mi.skipPreamble();
-            while (nextPart) {
-                final String headers = mi.readHeaders();
-                System.out.print("Headers=" + headers.length() + ", " + headers);
-                assertNotNull(headers);
-                // process headers
-                // create some output stream
-                mi.readBodyData(NullOutputStream.INSTANCE);
-                nextPart = mi.readBoundary();
-            }
-            fail("Expected Exception");
-        } catch (final FileUploadSizeException fuse) {
-            assertEquals(100, fuse.getPermitted());
-        }
+@Test
+void testPartHeaderSizeMaxLimit() throws Exception {
+    final String request =
+            "-----1234\r\n" +
+            "Content-Disposition: form-data; name=\"file1\"; filename=\"foo1.tab\"\r\n" +
+            "Content-Type: text/whatever\r\n" +
+            "Content-Length: 10\r\n" +
+            "\r\n" +
+            "This is the content of the file\n" +
+            "\r\n" +
+            "-----1234\r\n" +
+            "Content-Disposition: form-data; name=\"file2\"; filename=\"foo2.tab\"\r\n" +
+            "Content-Type: text/whatever\r\n" +
+            "\r\n" +
+            "This is the content of the file\n" +
+            "\r\n" +
+            "-----1234--\r\n";
+
+    final byte[] byteContents = request.getBytes(StandardCharsets.UTF_8);
+    final InputStream input = new ByteArrayInputStream(byteContents);
+    final byte[] boundary = "---1234".getBytes();
+
+    final MultipartInput mi = MultipartInput.builder()
+            .setInputStream(input)
+            .setBoundary(boundary)
+            .setPartHeaderSizeMax(100)
+            .get();
+
+    assertNotNull(mi);
+
+    // Process the preamble normally (this is NOT expected to throw)
+    boolean nextPart = mi.skipPreamble();
+    assertTrue(nextPart);
+
+    // Read the first headers normally (not expected to exceed limit)
+    String firstHeaders = mi.readHeaders();
+    assertNotNull(firstHeaders);
+    mi.readBodyData(NullOutputStream.INSTANCE);
+
+    // Move to the second part where the oversized header should trigger the exception
+    nextPart = mi.readBoundary();
+    assertTrue(nextPart);
+
+    // ✔️ Only the EXPECTED failing call inside try/catch
+    try {
+        mi.readHeaders(); // This is the call that should exceed the 100-char header size
+        fail("Expected FileUploadSizeException");
+    } catch (FileUploadSizeException fuse) {
+        assertEquals(100, fuse.getPermitted());
     }
+}
+
 
     @Test
     void testSmallBuffer() {
@@ -74,8 +100,9 @@ class MultipartStreamTest {
         final InputStream input = new ByteArrayInputStream(contents);
         final var boundary = BOUNDARY_TEXT.getBytes();
         final var iBufSize = 1;
-        assertThrows(IllegalArgumentException.class, () -> MultipartInput.builder().setInputStream(input).setBoundary(boundary).setBufferSize(iBufSize)
-                .setProgressNotifier(new MultipartInput.ProgressNotifier(null, contents.length)).get());
+        final var builder = MultipartInput.builder().setInputStream(input).setBoundary(boundary).setBufferSize(iBufSize)
+                .setProgressNotifier(new MultipartInput.ProgressNotifier(null, contents.length));
+        assertThrows(IllegalArgumentException.class, builder::get);
     }
 
     @Test
@@ -85,8 +112,9 @@ class MultipartStreamTest {
         final InputStream input = new ByteArrayInputStream(contents);
         final var boundary = BOUNDARY_TEXT.getBytes();
         final var iBufSize = boundary.length + MultipartInput.BOUNDARY_PREFIX.length + 1;
-        final var ms = MultipartInput.builder().setInputStream(input).setBoundary(boundary).setBufferSize(iBufSize)
-                .setProgressNotifier(new MultipartInput.ProgressNotifier(null, contents.length)).get();
+        final var builder = MultipartInput.builder().setInputStream(input).setBoundary(boundary).setBufferSize(iBufSize)
+                .setProgressNotifier(new MultipartInput.ProgressNotifier(null, contents.length));
+        final var ms = builder.get();
         assertNotNull(ms);
     }
 
@@ -96,8 +124,9 @@ class MultipartStreamTest {
         final var contents = strData.getBytes();
         final InputStream input = new ByteArrayInputStream(contents);
         final var boundary = BOUNDARY_TEXT.getBytes();
-        final var ms = MultipartInput.builder().setInputStream(input).setBoundary(boundary)
-                .setProgressNotifier(new MultipartInput.ProgressNotifier(null, contents.length)).get();
+        final var builder = MultipartInput.builder().setInputStream(input).setBoundary(boundary)
+                .setProgressNotifier(new MultipartInput.ProgressNotifier(null, contents.length));
+        final var ms = builder.get();
         assertNotNull(ms);
     }
 }
