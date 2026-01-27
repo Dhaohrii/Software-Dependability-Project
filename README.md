@@ -58,6 +58,8 @@ mvn spring-boot:run
 
 The application exposes REST endpoints that internally use core methods from StringUtils.
 
+---
+
 ##🧪 Automated Testing (JUnit)
 
 All automated test cases of the library are executed using:
@@ -73,6 +75,8 @@ Running the full test suite ensures that no regressions are introduced
 
 JUnit is the testing framework used to validate functional correctness.
 
+---
+
 ##📊 Code Coverage (JaCoCo)
 
 JaCoCo is integrated into the Maven lifecycle
@@ -83,6 +87,8 @@ Reports are generated during the verify phase
 
 This ensures that a significant portion of the codebase is exercised by tests.
 
+---
+
 ##🧬 Mutation Testing (PiTest)
 
 Mutation testing evaluates the effectiveness of the test suite by introducing artificial faults.
@@ -91,6 +97,8 @@ mvn org.pitest:pitest-maven:mutationCoverage
 
 
 If a mutation is not detected, it indicates a weakness in the tests.
+
+---
 
 ##⚡ Performance Testing (JMH)
 
@@ -105,6 +113,8 @@ mvn clean test -Pbenchmark
 
 This avoids benchmarking the entire library and focuses only on relevant methods.
 
+---
+
 ##📐 Formal Specification (JML)
 
 Core methods were formally specified using JML
@@ -114,6 +124,8 @@ Specifications were verified using OpenJML
 This provides formal guarantees about method behavior beyond testing
 
 The specifications were created and verified locally and documented in the project report.
+
+---
 
 ##🔐 Security Analysis
 
@@ -127,6 +139,8 @@ GitGuardian – secret detection
 
 Security checks are integrated into the CI/CD pipeline, ensuring continuous security analysis.
 
+---
+
 ##🐳 Dockerization
 
 A Docker image is provided that bundles the modified library together with the demo application, as required.
@@ -139,6 +153,8 @@ docker run -p 8080:8080 <dockerhub-username>/demo-app-lang3:1.0
 
 
 The application will be accessible on port 8080.
+
+---
 
 ##🔁 CI/CD Pipeline
 
@@ -159,6 +175,8 @@ mvn verify
 
 ensuring that only validated and compliant code is accepted.
 
+---
+
 ✅ Evaluation Criteria Coverage
 Requirement	Status
 Buildable locally and in CI/CD	✅
@@ -170,6 +188,8 @@ Formal specification (JML + OpenJML)	✅
 Docker image available	✅
 Security analysis (Snyk, GitGuardian, Sonar)	✅
 No known web vulnerabilities	✅
+
+---
 
 ##👤 Author
 
