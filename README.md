@@ -35,7 +35,7 @@ Software-Dependability-Project/
 
 ## ⚙️ Build Instructions
 
-### Build and verify the modified library
+ Build and verify the modified library
 
 ```bash
 mvn clean verify
